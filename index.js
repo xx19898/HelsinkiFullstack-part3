@@ -1,6 +1,9 @@
 const express = require('express')
 const cors = require('cors')
 var morgan = require('morgan')
+
+const { getAllEntries, getById, deleteById, createNewEntry } = require('./mongo')
+
 morgan.token('post-body', function (req, res) {
   if(req.method === 'POST'){
     return JSON.stringify(req.body)
@@ -9,10 +12,13 @@ morgan.token('post-body', function (req, res) {
     return ''
   }
 })
+
 const app = express()
+
 app.use(cors())
 app.use(express.static('build'))
-  morgan(function (tokens, req, res) {
+
+morgan(function (tokens, req, res) {
     return [
       tokens.method(req, res),
       tokens.url(req, res),
@@ -25,58 +31,28 @@ app.use(express.static('build'))
 
 app.use(express.json())
 
-let phonebook = [
-  {
-    id:1,
-    name: 'Arto Hellas',
-    number: '040-12356'
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523'
-  },
-  {
-    id:3,
-    name: 'Dan Abramov',
-    number: '12-43-234345'
-  },
-  {
-    id:4,
-    name: 'Mary Poppendick',
-    number: '39-23-6423122'
-  },
-]
-
-app.get('/api/persons/:id', (req, res) => {
-    const user = getEntryById(phonebook,parseInt(req.params.id))
+app.get('/api/persons/:id',async (req, res) => {
+    const user = await getById(parseInt(req.params.id))
     res.send(user)
 })
 
-app.get('/api/persons',(req,res) => {
-  res.send(phonebook)
+app.get('/api/persons',async (req,res) => {
+  const allEntries = await getAllEntries()
+  console.log({allEntries})
+  res.send(allEntries)
 })
 
 app.post('/api/persons',(req,res) => {
     if(req.body.name === undefined) res.status(400).send('<h1>Can\'t add entry as it does not have name property</h1>')
     else if(req.body.number === undefined) res.status(400).send('<h1>Can\'t add entry as it does not have number property</h1>')
-    else if(nameAlreadyInPhonebook(req.body.name,phonebook)) res.status(400).send('<h1>Can\'t add entry as there is already an entry with same name</h1>')
     else{
-        const newUserId = Math.floor((Math.random() * 100000 + 10000))
-        const newUser = {...req.body,id:newUserId}
-        newUser.id = newUserId
-        phonebook.push(newUser)
+        const newUser = {...req.body}
+        createNewEntry(newUser)
         res.send(newUser)
     }
 })
 
-function nameAlreadyInPhonebook(name,phonebook){
-    return phonebook.some((entry) => entry.name === name)
-}
 
-function getEntryById(list,id){
-    return user = list.find((person) => person.id === id)
-}
 
 app.get('/info',(req,res) => {
     res.send(`
@@ -84,16 +60,13 @@ app.get('/info',(req,res) => {
     <p>${new Date()}</p>`)
 })
 
-app.delete('/api/persons/:id',(req,res) => {
-    deleteEntryById(phonebook,parseInt(req.params.id))
-    res.send(phonebook)
+app.delete('/api/persons/:id',async (req,res) => {
+    await deleteById(parseInt(req.params.id)).then((x) => {
+      res.status(200).send(`Deleted entry with id of ${parseInt(req.params.id)}`)
+    }).catch(e => {
+      res.status(500).send(`Could not delete entry with id of ${parseInt(req.params.id)}`)
+    })
 })
-
-function deleteEntryById(list,id){
-    let newList = list.filter((entry) => entry.id != id)
-    console.log({newList})
-    phonebook = newList
-}
 
 app.get('/api/notes', (req, res) => {
   res.json(notes)
