@@ -10,19 +10,19 @@ const password = process.argv[2]
 
 console.log({password})
 
-const url = `mongodb+srv://phonebookUser:${password}@cluster0.czyxxd4.mongodb.net/?retryWrites=true&w=majority`
+const url = `mongodb+srv://phonebookUser:${password}@cluster0.czyxxd4.mongodb.net/Phonebook?retryWrites=true&w=majority`
 
 mongoose.set('strictQuery',false)
 mongoose.connect(url).then((x) => console.log('CONNECTED TO DB')).catch((e) => console.log('ERROR WHILE TRYING TO CONNECT TO THE DB'))
 
 const phonebookEntrySchema = new mongoose.Schema({
     name: String,
-    number: Number
+    number: String
 })
 
 console.log({serverstatus:mongoose.connection.readyState})
 
-const PhonebookEntry = mongoose.model('Note', phonebookEntrySchema)
+const PhonebookEntry = mongoose.model('PhonebookEntry', phonebookEntrySchema)
 
  async function createNewEntry(newEntry){
     console.log({SavingNewEntry: newEntry})
@@ -32,8 +32,6 @@ const PhonebookEntry = mongoose.model('Note', phonebookEntrySchema)
     })
     await entryToCreate.save().then(result => {
         console.log('new entry saved!')
-        mongoose.connection.close()
-        console.log('closed connection')
     })
 }
 
@@ -43,12 +41,19 @@ const PhonebookEntry = mongoose.model('Note', phonebookEntrySchema)
 }
 
  async function getById(id){
-    const entry = await PhonebookEntry.findById(id).exec()
+    console.log({id:id})
+    const entry = await PhonebookEntry.findOne({'_id':id}).exec()
+    console.log({entry:entry})
     return entry 
 }
 
-async function deleteById(id){
-    const entry = await PhonebookEntry.deleteOne({id:id}).exec()
+async function getCountOfAllEntries(){
+    const count = await PhonebookEntry.count()
+    return count
 }
 
-module.exports = {getAllEntries,getById,deleteById,createNewEntry}
+async function deleteById(id){
+    const entry = await PhonebookEntry.deleteOne({'_id':id}).exec()
+}
+
+module.exports = {getAllEntries,getById,deleteById,createNewEntry,getCountOfAllEntries}
