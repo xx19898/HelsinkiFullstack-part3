@@ -11,7 +11,7 @@ morgan.token('post-body', function (req, res) {
 })
 const app = express()
 app.use(cors())
-app.use(
+app.use(express.static('build'))
   morgan(function (tokens, req, res) {
     return [
       tokens.method(req, res),
