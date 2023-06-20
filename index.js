@@ -22,7 +22,7 @@ app.use(express.static('build'))
       tokens['post-body'](req,res)
     ].join(' ')
   })
-)
+
 app.use(express.json())
 
 let phonebook = [
