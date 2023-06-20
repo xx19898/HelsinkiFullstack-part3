@@ -1,5 +1,26 @@
 const express = require('express')
+var morgan = require('morgan')
+morgan.token('post-body', function (req, res) {
+  if(req.method === 'POST'){
+    return JSON.stringify(req.body)
+  }
+  else{
+    return ''
+  }
+})
 const app = express()
+app.use(
+  morgan(function (tokens, req, res) {
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms',
+      tokens['post-body'](req,res)
+    ].join(' ')
+  })
+)
 app.use(express.json())
 
 let phonebook = [
@@ -23,12 +44,10 @@ let phonebook = [
     name: 'Mary Poppendick',
     number: '39-23-6423122'
   },
-  
 ]
 
 app.get('/api/persons/:id', (req, res) => {
     const user = getEntryById(phonebook,parseInt(req.params.id))
-    console.log({user})
     res.send(user)
 })
 
