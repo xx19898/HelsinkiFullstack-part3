@@ -53,6 +53,10 @@ app.get('/api/persons/:id', (req, res) => {
     res.send(user)
 })
 
+app.get('/api/persons',(req,res) => {
+  res.send(phonebook)
+})
+
 app.post('/api/persons',(req,res) => {
     if(req.body.name === undefined) res.status(400).send('<h1>Can\'t add entry as it does not have name property</h1>')
     else if(req.body.number === undefined) res.status(400).send('<h1>Can\'t add entry as it does not have number property</h1>')
