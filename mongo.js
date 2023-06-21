@@ -3,6 +3,7 @@ const process = require('process')
 require('dotenv').config()
 
 const password = process.env.dbPassword
+console.log({password})
 const url = `mongodb+srv://phonebookUser:${password}@cluster0.czyxxd4.mongodb.net/Phonebook?retryWrites=true&w=majority`
 
 mongoose.set('strictQuery',false)
