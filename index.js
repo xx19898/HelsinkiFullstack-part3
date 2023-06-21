@@ -32,10 +32,11 @@ morgan(function (tokens, req, res) {
 
   const errorHandler = (error,request,response,next) => {
     console.error('GOT TO ERROR HANDLER')
-    console.log({errorName:error.name})
     if(error.name === 'CastError'){
       return response.status(400).send({error:'malformatted id'})
     }else if(error.name === 'Error'){
+      return response.status(400).send({error:error.message})
+    }else if(error.name === 'ValidationError'){
       return response.status(400).send({error:error.message})
     }
     next()
@@ -55,13 +56,12 @@ morgan(function (tokens, req, res) {
     res.send(allEntries)
   })
 
-  app.post('/api/persons',(req,res,next) => {
+  app.post('/api/persons',async (req,res,next) => {
       console.log({data:req.body})
       if(req.body.name == undefined || req.body.number == undefined || req.body.name.length === 0 || req.body.number.length === 0) next(new Error('Malformed request. Form missin either name or number'))
       else{
           const newUser = {...req.body}
-          createNewEntry(newUser)
-          res.send(newUser)
+          await createNewEntry(newUser).then(() => res.send(newUser)).catch(e => next(e))
       }
   })
 
